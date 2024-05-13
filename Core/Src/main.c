@@ -55,6 +55,39 @@ UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart6;
 
 /* USER CODE BEGIN PV */
+typedef struct PID{
+	float kp;
+	float ki;
+	float kd;
+
+	float e;
+	float u;
+
+	float ePrev;
+	float eIntegral;
+	float dedt;
+
+	float deltaT;
+
+	float setPoint;
+}PID;
+
+PID Roll;
+PID Pitch;
+PID Yaw;
+PID Alti;
+
+float dummyRoll = 0;
+float dummyPitch = 0;
+float dummyYaw = 0;
+float dummyAlti = 0;
+
+uint16_t Mfr = 0;
+uint16_t Mfl = 0;
+uint16_t Mbr = 0;
+uint16_t Mbl = 0;
+
+uint16_t Thrust = 0;
 
 /* USER CODE END PV */
 
@@ -70,7 +103,8 @@ static void MX_SPI1_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART6_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+void PID_function(PID *Datastruct, float actual);
+void MMA();
 
 /* USER CODE END PFP */
 
@@ -117,6 +151,41 @@ int main(void)
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  //initial setPoint
+  Roll.setPoint = 0;
+  Pitch.setPoint = 0;
+  Yaw.setPoint = 0;
+  Alti.setPoint = 0;
+
+  //initial gain for all PID
+  Roll.kp = 0;
+  Roll.ki = 0;
+  Roll.kd = 0;
+
+  Pitch.kp = 0;
+  Pitch.ki = 0;
+  Pitch.kd = 0;
+
+  Yaw.kp = 0;
+  Yaw.ki = 0;
+  Yaw.kd = 0;
+
+  Alti.kp = 0;
+  Alti.ki = 0;
+  Alti.kd = 0;
+
+  //initial output
+  Roll.u = 0;
+  Pitch.u = 0;
+  Yaw.u = 0;
+  Alti.u = 0;
+
+  //initail deltaT
+  Roll.deltaT = 0.001;
+  Pitch.deltaT = 0.001;
+  Yaw.deltaT = 0.001;
+  Alti.deltaT = 0.001;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -126,7 +195,34 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  static uint32_t RollStamp = 0;
+	  static uint32_t PitchStamp = 0;
+	  static uint32_t YawStamp = 0;
+	  static uint32_t AltiStamp = 0;
 
+	  if(HAL_GetTick() >= RollStamp){
+		  RollStamp = HAL_GetTick() + 1;
+
+		  PID_function(&Roll, dummyRoll);
+	  }
+
+	  if(HAL_GetTick() >= PitchStamp){
+		  PitchStamp = HAL_GetTick() + 1;
+
+		  PID_function(&Pitch, dummyPitch);
+	  }
+
+	  if(HAL_GetTick() >= YawStamp){
+		  YawStamp = HAL_GetTick() + 1;
+
+		  PID_function(&Yaw, dummyYaw);
+	  }
+
+	  if(HAL_GetTick() >= AltiStamp){
+		  AltiStamp = HAL_GetTick() + 1;
+
+		  PID_function(&Alti, dummyAlti);
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -558,7 +654,30 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void PID_function(PID *Datastruct, float actual){
 
+	//error
+	Datastruct->e = Datastruct->setPoint - actual;
+
+	//Derivertive
+	Datastruct->dedt = (Datastruct->e - Datastruct->ePrev) / Datastruct->deltaT;
+
+	//Integral
+	Datastruct->eIntegral = Datastruct->eIntegral + (Datastruct->e * Datastruct->deltaT);
+
+	//output
+	Datastruct->u = (Datastruct->kp * Datastruct->e) + (Datastruct->kd * Datastruct->dedt) + (Datastruct->ki * Datastruct->eIntegral);
+
+	//update error
+	Datastruct->ePrev = Datastruct->e;
+}
+
+void MMA(){
+	Mfr = Thrust + Yaw.u + Pitch.u + Roll.u;
+	Mfl = Thrust - Yaw.u + Pitch.u - Roll.u;
+	Mbr = Thrust - Yaw.u - Pitch.u + Roll.u;
+	Mbl = Thrust + Yaw.u - Picth.u - Roll.u;
+}
 /* USER CODE END 4 */
 
 /**
