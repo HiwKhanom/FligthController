@@ -21,7 +21,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "ICM20948.h"
+#include "BMP280.h"
+#include "math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,6 +57,9 @@ UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart6;
 
 /* USER CODE BEGIN PV */
+ICM20948 icm20948;
+BMP280 bmp280;
+
 typedef struct PID{
 	float kp;
 	float ki;
@@ -186,6 +191,11 @@ int main(void)
   Yaw.deltaT = 0.001;
   Alti.deltaT = 0.001;
 
+  ICM20948_init(&hi2c1);
+  AK09916_init(&hi2c1);
+  BMP280_init(&hi2c1);
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -195,34 +205,42 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  static uint32_t RollStamp = 0;
-	  static uint32_t PitchStamp = 0;
-	  static uint32_t YawStamp = 0;
-	  static uint32_t AltiStamp = 0;
+//	  static uint32_t RollStamp = 0;
+//	  static uint32_t PitchStamp = 0;
+//	  static uint32_t YawStamp = 0;
+//	  static uint32_t AltiStamp = 0;
+//
+//	  if(HAL_GetTick() >= RollStamp){
+//		  RollStamp = HAL_GetTick() + 1;
+//
+//		  PID_function(&Roll, dummyRoll);
+//	  }
+//
+//	  if(HAL_GetTick() >= PitchStamp){
+//		  PitchStamp = HAL_GetTick() + 1;
+//
+//		  PID_function(&Pitch, dummyPitch);
+//	  }
+//
+//	  if(HAL_GetTick() >= YawStamp){
+//		  YawStamp = HAL_GetTick() + 1;
+//
+//		  PID_function(&Yaw, dummyYaw);
+//	  }
+//
+//	  if(HAL_GetTick() >= AltiStamp){
+//		  AltiStamp = HAL_GetTick() + 1;
+//
+//		  PID_function(&Alti, dummyAlti);
+//	  }
 
-	  if(HAL_GetTick() >= RollStamp){
-		  RollStamp = HAL_GetTick() + 1;
+	static uint32_t timestamp = 0;
+	if (HAL_GetTick() >= timestamp) {
+		timestamp = HAL_GetTick() + 1;
 
-		  PID_function(&Roll, dummyRoll);
-	  }
-
-	  if(HAL_GetTick() >= PitchStamp){
-		  PitchStamp = HAL_GetTick() + 1;
-
-		  PID_function(&Pitch, dummyPitch);
-	  }
-
-	  if(HAL_GetTick() >= YawStamp){
-		  YawStamp = HAL_GetTick() + 1;
-
-		  PID_function(&Yaw, dummyYaw);
-	  }
-
-	  if(HAL_GetTick() >= AltiStamp){
-		  AltiStamp = HAL_GetTick() + 1;
-
-		  PID_function(&Alti, dummyAlti);
-	  }
+		ICM20948_allRead(&hi2c1, &icm20948);
+		BMP280_allRead(&hi2c1, &bmp280);
+	}
   }
   /* USER CODE END 3 */
 }
@@ -654,30 +672,32 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void PID_function(PID *Datastruct, float actual){
+//void PID_function(PID *Datastruct, float actual){
+//
+//	//error
+//	Datastruct->e = Datastruct->setPoint - actual;
+//
+//	//Derivertive
+//	Datastruct->dedt = (Datastruct->e - Datastruct->ePrev) / Datastruct->deltaT;
+//
+//	//Integral
+//	Datastruct->eIntegral = Datastruct->eIntegral + (Datastruct->e * Datastruct->deltaT);
+//
+//	//output
+//	Datastruct->u = (Datastruct->kp * Datastruct->e) + (Datastruct->kd * Datastruct->dedt) + (Datastruct->ki * Datastruct->eIntegral);
+//
+//	//update error
+//	Datastruct->ePrev = Datastruct->e;
+//}
+//
+//void MMA(){
+//	Mfr = Thrust + Yaw.u + Pitch.u + Roll.u;
+//	Mfl = Thrust - Yaw.u + Pitch.u - Roll.u;
+//	Mbr = Thrust - Yaw.u - Pitch.u + Roll.u;
+//	Mbl = Thrust + Yaw.u - Picth.u - Roll.u;
+//}
 
-	//error
-	Datastruct->e = Datastruct->setPoint - actual;
 
-	//Derivertive
-	Datastruct->dedt = (Datastruct->e - Datastruct->ePrev) / Datastruct->deltaT;
-
-	//Integral
-	Datastruct->eIntegral = Datastruct->eIntegral + (Datastruct->e * Datastruct->deltaT);
-
-	//output
-	Datastruct->u = (Datastruct->kp * Datastruct->e) + (Datastruct->kd * Datastruct->dedt) + (Datastruct->ki * Datastruct->eIntegral);
-
-	//update error
-	Datastruct->ePrev = Datastruct->e;
-}
-
-void MMA(){
-	Mfr = Thrust + Yaw.u + Pitch.u + Roll.u;
-	Mfl = Thrust - Yaw.u + Pitch.u - Roll.u;
-	Mbr = Thrust - Yaw.u - Pitch.u + Roll.u;
-	Mbl = Thrust + Yaw.u - Picth.u - Roll.u;
-}
 /* USER CODE END 4 */
 
 /**

@@ -1,0 +1,14 @@
+../Core/Src/ICM20948.c:39:6:ICM20948_allRead	64	static
+../Core/Src/ICM20948.c:107:6:select_user_bank	32	static
+../Core/Src/ICM20948.c:111:9:ICM20948_WHO_AM_I	40	static
+../Core/Src/ICM20948.c:121:9:AK09916_WHO_AM_I	40	static
+../Core/Src/ICM20948.c:131:6:ICM20948_init	40	static
+../Core/Src/ICM20948.c:189:6:AK09916_init	40	static
+../Core/Src/ICM20948.c:205:6:ICM20948_Gyro_Calib	64	static
+../Core/Src/ICM20948.c:234:6:ICM20948_Accel_Calib	88	static
+../Core/Src/ICM20948.c:291:6:ICM20948_readAccel	40	static
+../Core/Src/ICM20948.c:302:6:ICM20948_readGyro	40	static
+../Core/Src/ICM20948.c:313:6:AK09916_readMagn	48	static
+../Core/Src/ICM20948.c:333:6:ICM20948_Gyro_Scale	40	static
+../Core/Src/ICM20948.c:361:6:ICM20948_Accel_Scale	40	static
+../Core/Src/ICM20948.c:387:6:QuaternionUpdate	208	static

@@ -1,0 +1,5 @@
+../Core/Src/BMP280.c:38:6:BMP280_init	40	static
+../Core/Src/BMP280.c:55:9:BMP280_WHO_AM_I	40	static
+../Core/Src/BMP280.c:62:6:BMP280_readPressure	40	static
+../Core/Src/BMP280.c:69:6:BMP280_readTemperature	40	static
+../Core/Src/BMP280.c:76:6:BMP280_allRead	88	static
